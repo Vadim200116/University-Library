@@ -3,7 +3,7 @@
 #include<stdlib.h>
 #include<string.h>
 #include<locale.h>
-#include"structsnew.c"
+#include"structs.c"
 #include "books.c"
 #include"students.c"
 
