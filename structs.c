@@ -1,5 +1,5 @@
-#ifndef STRUCTS_H
-#define STRUCTS_H
+#ifndef STRUCTS
+#define STRUCTS
 
 // students
 typedef struct Anketa{
@@ -10,6 +10,8 @@ typedef struct Anketa{
 	char Faculty[16];
 	char Spec[64];
 }Anketa;
+
+// backup
 
 typedef struct backdate{
     char month[3];

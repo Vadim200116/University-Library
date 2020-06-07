@@ -4,10 +4,9 @@
 #include<string.h>
 #include<locale.h>
 #include"structs.c"
-#define STRING_SIZE 256
-#define CASE_SIZE 32
-#define MASSIVE_SIZE 4096
-
+#define STRING_SIZE 256  //длина строки файла
+#define CASE_SIZE 32 //длина строки ввода
+#define MASSIVE_SIZE 4096 // размер массива структур
 
 void WriteBooks(BOOK*Base, int size){
     FILE *Basefile=fopen("books.csv", "r");
@@ -26,9 +25,9 @@ void WriteBooks(BOOK*Base, int size){
 int ViewBooks(BOOK*Base, int size){
         printf("Таблица:\n");
         printf("________________________________________________________________________________________\n");
-        printf("   Номер ISBN  |    Ф И.О.автора    |            Название          |кол-во|доступ.кол-во|\n");
+        printf("   Номер ISBN  |    Ф И.О.автора    |            Название          |Кол-во|доступ.Кол-во|\n");
         for(int i=0;i<size;i++){
-            if(Base[i].ISBN!=0){
+            if(Base[i].ISBN){
                 printf("________________________________________________________________________________________\n");
                 printf("%15lli|%20s|%30s|%6s|%13s|\n", Base[i].ISBN,Base[i].NameSP,Base[i].BookName,Base[i].Number,Base[i].Avail);
             }
@@ -37,7 +36,7 @@ int ViewBooks(BOOK*Base, int size){
         printf("чтобы сохранить нажмите 12\n");
 }
 
-void StrSwap(BOOK*Base,int left,int right){ //функция замены строк для быстрой сортировки
+void StrSwap(BOOK*Base,int left,int right){ 
     BOOK*Basket;
     Basket=calloc(MASSIVE_SIZE,sizeof(BOOK));
     Basket[left]=Base[left];
@@ -45,7 +44,7 @@ void StrSwap(BOOK*Base,int left,int right){ //функция замены строк для быстрой с
     Base[right]=Basket[left];
 }
 
-void QuickSort(BOOK *Base, int left, int right){ //используем быструю сортировку, т.к. предполагается большой объем данных + числа ISBM весьма большие
+void QuickSort(BOOK *Base, int left, int right){ 
   int startleft = left;
   int startright = right;
   long long int pivot = Base[left].ISBN;
@@ -73,7 +72,7 @@ void QuickSort(BOOK *Base, int left, int right){ //используем быструю сортировку
 }
 
 
-int AddBook(BOOK*Base, int NumberLine){
+int AddBook(BOOK*Base, int NumberLine){ 
         printf("ДОБАВЛЕНИЕ КНИГИ(вместо пробелов использовать запятые)\nНомер ISBN:");
         char StrISBN[CASE_SIZE];
         scanf("%s",&StrISBN);
@@ -82,14 +81,14 @@ int AddBook(BOOK*Base, int NumberLine){
         }
         long long int ISBN=atoll(StrISBN);
         int copy=0;
-        for(int i=0; i<NumberLine; i++) {// Проверем есть если ли такая книга в базе
+        for(int i=0; i<NumberLine; i++) {
             if(Base[i].ISBN==ISBN){
                 printf("Книга уже есть в базе.\n");
                 copy=1;
                 return 1;
             }
         }
-        if(copy==1){ //если есть то возвращаемся в главное меню
+        if(copy==1){ 
             return 1;
         }
         if(copy==0){
@@ -98,7 +97,7 @@ int AddBook(BOOK*Base, int NumberLine){
             SetConsoleCP(1251);
             scanf("%s",&NameSP);
             SetConsoleCP(866);
-            if((strcmp(NameSP,"Q"))==0){
+            if(!strcmp(NameSP,"Q")){
                 return 1;
             }
             char BookName[CASE_SIZE];
@@ -106,7 +105,7 @@ int AddBook(BOOK*Base, int NumberLine){
             SetConsoleCP(1251);
             scanf("%s",&BookName);
             SetConsoleCP(866);
-            if((strcmp(BookName,"Q"))==0){
+            if(!strcmp(BookName,"Q")){
                 return 1;
             }
             char Number[CASE_SIZE];
@@ -114,7 +113,7 @@ int AddBook(BOOK*Base, int NumberLine){
             SetConsoleCP(1251);
             scanf("%s",&Number);
             SetConsoleCP(866);
-            if((strcmp(Number,"Q"))==0){
+            if(!strcmp(Number,"Q")){
                 return 1;
             }
             char Avail[CASE_SIZE];
@@ -122,13 +121,11 @@ int AddBook(BOOK*Base, int NumberLine){
             SetConsoleCP(1251);
             scanf("%s",&Avail);
             SetConsoleCP(866);
-            if((strcmp(Avail,"Q"))==0){
+            if(!strcmp(Avail,"Q")){
                 return 1;
             }
-            Base[NumberLine].ISBN = ISBN;
-                            //printf("%s",Base[NumberLine].ISBN);
+            Base[NumberLine].ISBN = ISBN;                           
             strcpy(Base[NumberLine].NameSP,NameSP);
-                            //printf("%s",Base[NumberLine].NameSP);
             strcpy(Base[NumberLine].BookName,BookName);
             strcpy(Base[NumberLine].Number,Number);
             strcpy(Base[NumberLine].Avail,Avail);
@@ -141,10 +138,10 @@ int AddBook(BOOK*Base, int NumberLine){
 void DeleteBook(BOOK*Base, int NumberLine){
                 int del=0;
                 printf("УДАЛЕНИЕ КНИГИ\n");
-                printf("введите номер ISBN:");
+                printf("Введите номер ISBN:");
                 char StrISBN[CASE_SIZE];
                 scanf("%s",&StrISBN);
-                if((strcmp(StrISBN,"Q"))==0){
+                if(!strcmp(StrISBN,"Q")){
                     return;
                 }
                 long long int ISBN=atoll(StrISBN);
@@ -173,7 +170,6 @@ void SearchBook(BOOK*Base,int NumberLine){
                     return;
                 }
                 long long int ISBN=atoll(StrISBN);
-                //printf("%lli",ISBN);
                 int found=0;
                 for(int i=0;i<NumberLine;i++){
                     if(Base[i].ISBN==ISBN){
@@ -194,9 +190,9 @@ void SearchBook(BOOK*Base,int NumberLine){
 }
 
 float ExitBooks(BOOK*Base, int NumberLine){
-                FILE *Basefile=fopen("books.csv", "w"); // открываем файл для записи(при этом все данные удаляются)
+                FILE *Basefile=fopen("books.csv", "w");
                 for(int i=0;i<NumberLine;i++){
-                    if(Base[i].ISBN!=0){
+                    if(Base[i].ISBN){
                         fprintf(Basefile,"%lli;%s;%s;%s;%s\n",Base[i].ISBN,Base[i].NameSP,Base[i].BookName,Base[i].Number,Base[i].Avail);
                     }
                 }
@@ -208,23 +204,23 @@ float ExitBooks(BOOK*Base, int NumberLine){
 
 void books(){
     setlocale(LC_ALL,".1251");
-    int NumberLineBooks=0;
+    int NumberLineBooks=0;// количество строчек
 	FILE *BooksFile=fopen("books.csv", "r");
 	if(BooksFile==NULL){
         printf("Файл не найден.");
     }else{
         printf("файл прочитан\n");
-        while(!feof(BooksFile)){  //считаем количество строк
+        while(!feof(BooksFile)){  
             if((fgetc(BooksFile))=='\n'){
                 NumberLineBooks++;
             }
         }
         printf("количество строк: %d\n",NumberLineBooks);
         fclose(BooksFile);
-        BOOK*Basebooks;             //создаем массив Basebooks
+        BOOK*Basebooks;             //массив книг 
         Basebooks=calloc(MASSIVE_SIZE,sizeof(BOOK));
-        WriteBooks(Basebooks, NumberLineBooks); //записываем данные файла в Basebooks (по структуре в файле structanketa.h
-        if(NumberLineBooks>0){ //выводим таблицу, если она не пустая
+        WriteBooks(Basebooks, NumberLineBooks); //записываем данные файла в Basebooks 
+        if(NumberLineBooks>0){ 
             ViewBooks(Basebooks,NumberLineBooks);
         }
 
@@ -234,45 +230,46 @@ void books(){
 
         char BooksButton[4];
         strcpy(BooksButton,"-1");
-		while((strcmp(BooksButton,"-1"))==0){ //главный цикл
+		while(!strcmp(BooksButton,"-1")){ //главный цикл
             printf("books:");
             SetConsoleCP(1251);
             scanf("%s",&BooksButton);
             SetConsoleCP(866);
             printf("%s- ",BooksButton);
 
-            if((strcmp(BooksButton,"Q"))!=0 && (strcmp(BooksButton,"0"))!=0 && (strcmp(BooksButton,"1"))!=0 && (strcmp(BooksButton,"2"))!=0 && (strcmp(BooksButton,"3"))!=0 && (strcmp(BooksButton,"4"))!=0 && (strcmp(BooksButton,"12"))!=0){
+            if((strcmp(BooksButton,"Q")) && (strcmp(BooksButton,"0")) && (strcmp(BooksButton,"1")) && (strcmp(BooksButton,"2")) && (strcmp(BooksButton,"3")) && (strcmp(BooksButton,"4")) && (strcmp(BooksButton,"12"))){
                 printf("Неопознанная команда\n");
                 strcpy(BooksButton,"-1");
             }
             // ПРОГРАММЫ:
-            if((strcmp(BooksButton,"Q"))==0){
+            if(!strcmp(BooksButton,"Q")){
                 printf("Возврат в главное меню\n");
                 return;
             }
-            if ((strcmp(BooksButton,"1"))==0){    //добавление книги
+            if (!strcmp(BooksButton,"1")){    //добавление книги
                 if(AddBook(Basebooks,NumberLineBooks)!=1){
-                NumberLineBooks++;}
+                NumberLineBooks++;
+                }
                 strcpy(BooksButton,"-1");
             }
-            if((strcmp(BooksButton,"2"))==0){ //удаление книги
+            if(!strcmp(BooksButton,"2")){ //удаление книги
                 DeleteBook(Basebooks, NumberLineBooks);
                 strcpy(BooksButton,"-1");
             }
 
-            if((strcmp(BooksButton,"3"))==0){  //найти информацию
+            if(!strcmp(BooksButton,"3")){  //найти информацию
                 SearchBook(Basebooks,NumberLineBooks);
                 strcpy(BooksButton,"-1");
             }
 
-            if((strcmp(BooksButton,"4"))==0){  //сортировка по ISBN
+            if(!strcmp(BooksButton,"4")){  //сортировка по ISBN
                 QuickSort(Basebooks,0,NumberLineBooks-1);
                 ViewBooks(Basebooks,NumberLineBooks);
                 strcpy(BooksButton,"-1");
             }
-            if ((strcmp(BooksButton,"12"))==0){	//выход из программы с сохранением изменений
+            if (!strcmp(BooksButton,"12")){	//выход из программы с сохранением изменений
                 ExitBooks(Basebooks, NumberLineBooks);
-                strcpy(BooksButton,"0");;
+                strcpy(BooksButton,"0");
             }
 
         }

@@ -5,16 +5,16 @@
 #include<locale.h>
 #include <time.h>
 #include"structs.c"
-#define S_STRING_SIZE 256
-#define S_CASE_SIZE 64
-#define S_MASSIVE_SIZE 4096
+#define S_STRING_SIZE 256 //длина строки файла
+#define S_CASE_SIZE 64 //длина строки ввода
+#define S_MASSIVE_SIZE 4096 // размер массива структур
 
 int ViewStudents(Anketa*Base, int size){
         printf("Таблица:\n");
         printf("________________________________________________________________________________________\n");
         printf("Номер зачетной книжки|    Фамилия    |    Имя   |    Отчество   |Факультет|Специальность|\n");
-        for(int i=0;i<size;i++){
-            if((strcmp(Base[i].RecBook, "del"))!=0){
+        for(int i=0;i<size;i++){            
+               if((strcmp(Base[i].RecBook, "del"))!=0){
                 printf("________________________________________________________________________________________\n");
                 printf("%21s|", Base[i].RecBook);
                 printf("%15s|", Base[i].Surname);
@@ -25,10 +25,9 @@ int ViewStudents(Anketa*Base, int size){
             }
         }
         printf("________________________________________________________________________________________\n");
-        printf("чтобы сохранить нажмите 8\n");
 }
 
-void WriteStudents(Anketa*Base, int size, char filename[S_CASE_SIZE]){
+void WriteStudents(Anketa*Base, int size,char filename[S_CASE_SIZE]){
     FILE *Basefile=fopen(filename, "r");
     char Basket[S_STRING_SIZE];
     for(int i=0;i<size;i++){
@@ -49,19 +48,16 @@ int AddStudent(Anketa*Base, int NumberLine){
         SetConsoleCP(1251);
         scanf("%s",&RecBook);
         SetConsoleCP(866);
-        if((strcmp(RecBook,"Q"))==0){
+        if(!strcmp(RecBook,"Q")){
             return 1;
         }
-        int copy=0;
+        int copy=0; // проверяет номер зачетки на совпадение
         for(int i=0; i<NumberLine; i++) {// Проверем есть если ли такая зачетка в базе
-            if(strcmp(RecBook, Base[i].RecBook)==0){
+            if(!strcmp(RecBook, Base[i].RecBook)){
                 printf("Студент уже есть в базе.\n");
                 copy=1;
                 return 1;
             }
-        }
-        if(copy==1){ //если есть то возвращаемся в главное меню
-            return 1;
         }
         if(copy==0){
             char Surname[S_CASE_SIZE];
@@ -97,7 +93,7 @@ int AddStudent(Anketa*Base, int NumberLine){
                 return 1;
             }
             char Spec[S_CASE_SIZE];
-            printf("специальность:");
+            printf("Специальность:");
             SetConsoleCP(1251);
             scanf("%s",&Spec);
             SetConsoleCP(866);
@@ -117,9 +113,9 @@ int AddStudent(Anketa*Base, int NumberLine){
 }
 
 void DeleteStudent(Anketa*Base, int NumberLine){
-                int del=0;
+                int del=0;//идентификатор успешности удаления
                 printf("УДАЛЕНИЕ СТУДЕНТА\n");
-                printf("введите номер зачетной книжки:");
+                printf("Введите номер зачетной книжки:");
                 char RecBook[S_CASE_SIZE];
                 SetConsoleCP(1251);
                 scanf("%s",&RecBook);
@@ -137,9 +133,119 @@ void DeleteStudent(Anketa*Base, int NumberLine){
                     }
                 }
                 if(del==0){
-                    printf("студент не найден\n");
+                    printf("Студент не найден\n");
                 }
 }
+
+
+void CreateBackUp(Anketa*Base, int NumberLine)
+{
+    printf("СОЗДАНИЕ БЭКАПА\n");    
+    char date[S_STRING_SIZE];//массив для хранения даты
+    long int s_time = time(NULL);
+    struct tm *m_time = localtime(&s_time);
+    strftime(date, S_STRING_SIZE, "%m_%d_(%H.%M)_%Y_", m_time);
+    
+    char filename[S_STRING_SIZE];//массив для хранения названия бэк-ап файла
+    sprintf(filename, "students_%s.csv", date);
+    
+    FILE* Backup = fopen(filename, "w");
+    if(Backup == NULL){
+        printf("Не удалось создать бэк-ап файл %s\n", filename);
+        return;
+    }
+     for (int i = 0; i < NumberLine; i++)
+    {
+       fprintf(Backup,"%s;%s;%s;%s;%s;%s\n",Base[i].RecBook,Base[i].Surname,Base[i].Name,Base[i].Patron,Base[i].Faculty,Base[i].Spec);
+    }
+    printf("Бэк-ап файл успешно создан %s\n", filename);
+
+    fclose(Backup);
+}
+
+
+int CopyBackUp(Anketa*Base, int NumberLine){
+    backdate date;// структура даты 
+    char fname[S_STRING_SIZE]="students_";// название бэк-апа
+    printf("ВОССТАНОВЛЕНИЕ ИЗ БЭКАПА\n");
+    printf("введите дату и время\n");
+    printf(" месяц:");
+    scanf("%s",&date.month);
+    if(!strcmp("Q",date.month)){
+        return 0;
+    }
+    printf(" число:");
+    scanf("%s",&date.number);
+    if(!strcmp("Q",date.number)){
+        return 0;
+    }
+    printf(" час:");
+    scanf("%s",&date.hour);
+    if(!strcmp("Q",date.hour)){
+        return 0;
+    }
+    printf(" минуту:");
+    scanf("%s",&date.minute);
+    if(!strcmp("Q",date.minute)){
+        return 0;
+    }
+    printf(" год:");
+    scanf("%s",&date.year);
+    if(!strcmp("Q",date.year)){
+        return 0;
+    }
+    strcat(fname,date.month);
+    strcat(fname,"_");
+    strcat(fname,date.number);
+    strcat(fname,"_(");
+    strcat(fname,date.hour);
+    strcat(fname,".");
+    strcat(fname,date.minute);
+    strcat(fname,")_");
+    strcat(fname,date.year);
+    strcat(fname,"_");
+    strcat(fname,".csv");
+    printf("%s",fname);
+
+    FILE *Backupfile=fopen(fname, "r");
+    if(Backupfile==NULL){
+        printf(" - файл не найден.\n");
+    }else{
+        printf(" - файл успешно открыт\n");
+        int BNumberLine=0;// количество строк в бэк-апе
+        while(!feof(Backupfile)){  //считаем количество строк
+            if((fgetc(Backupfile))=='\n'){
+                BNumberLine++;
+            }
+        }
+        fclose(Backupfile);
+        printf("количество строк в файле бэкапа: %d\n",BNumberLine);
+        Anketa *BackBase;             //массив данных бэк-апа
+        BackBase=calloc(S_MASSIVE_SIZE,sizeof(Anketa));
+        WriteStudents(BackBase,BNumberLine,fname); //записываем данные файла бэкапа в BackBase
+
+        if(BNumberLine>0){ 
+            printf("Таблица в файле бэкапа:\n");
+            ViewStudents(BackBase,BNumberLine);
+        }
+        for(int i=0; i<BNumberLine;i++){
+            strcpy(Base[i].RecBook,BackBase[i].RecBook);
+            strcpy(Base[i].Surname,BackBase[i].Surname);
+            strcpy(Base[i].Name,BackBase[i].Name);
+            strcpy(Base[i].Patron,BackBase[i].Patron);
+            strcpy(Base[i].Faculty,BackBase[i].Faculty);
+            strcpy(Base[i].Spec,BackBase[i].Spec);
+        }
+        if(BNumberLine<NumberLine){
+            for(int i=BNumberLine;i<NumberLine;i++){
+                strcpy(Base[i].RecBook,"del");
+            }
+        }
+    }
+}
+
+
+
 
 void SearchStudent(Anketa*Base,int NumberLine){
                 printf("ПОИСК ИНФОРМАЦИИ ПО ФАМИЛИИ\nВведите фамилию:");
@@ -147,13 +253,13 @@ void SearchStudent(Anketa*Base,int NumberLine){
                 SetConsoleCP(1251);
                 scanf("%s",&Surname);
                 SetConsoleCP(866);
-                int found=0;
-                int d=0;
-                if((strcmp(Surname,"Q"))==0){
+                int found=0;//Существует ли студент с такой фамилией
+                int d=0;//вывод шапки таблиц
+                if(!strcmp(Surname,"Q")){
                     return;
                 }
                 for(int m=0;m<NumberLine;m++){
-                    if((strcmp(Base[m].Surname, Surname))==0){
+                    if(!strcmp(Base[m].Surname, Surname)){
                         if(d==0){printf("________________________________________________________________________________________\n");
                         printf("Номер зачетной книжки|    Фамилия    |    Имя   |    Отчество   |Факультет|Специальность|\n");
                         printf("________________________________________________________________________________________\n");
@@ -164,13 +270,13 @@ void SearchStudent(Anketa*Base,int NumberLine){
                         found=1;
                     }
                 }
-                if(found==0){
+                if(!found){
                     printf("студент с такой фамилией не найден\n");
                 }
 }
 
 void ExitStudents(Anketa*Base, int NumberLine){
-    FILE *Basefile=fopen("students.csv", "w"); // открываем файл для записи(при этом все данные удаляются)
+    FILE *Basefile=fopen("students.csv", "w");
     for(int i=0;i<NumberLine;i++){
         if((strcmp(Base[i].RecBook, "del"))!=0){
             fprintf(Basefile,"%s;%s;%s;%s;%s;%s\n",Base[i].RecBook,Base[i].Surname,Base[i].Name,Base[i].Patron,Base[i].Faculty,Base[i].Spec);
@@ -184,84 +290,75 @@ void ExitStudents(Anketa*Base, int NumberLine){
 
 
 
-
-
-
-
-
-
-
-
-
-
-
 void students(){
-    int NumberLineStud=0;
+        setlocale(LC_ALL,"Russian");
+    unsigned int NumberLineStud=0;//количество срок
 	FILE *StudFile=fopen("students.csv", "r");
 	if(StudFile==NULL){
         printf("Файл не найден.");
     }else{
-        printf("файл прочитан\n");
+        printf("Файл прочитан\n");
         while(!feof(StudFile)){  //считаем количество строк
             if((fgetc(StudFile))=='\n'){
                 NumberLineStud++;
             }
         }
-        printf("количество строк: %d\n",NumberLineStud);
+        printf("Количество строк: %d\n",NumberLineStud);
         fclose(StudFile);
-        Anketa*BaseStud;             //создаем массив BaseStud
+        Anketa*BaseStud;             //массив студентов
         BaseStud=calloc(S_MASSIVE_SIZE,sizeof(Anketa));
         char filename[S_CASE_SIZE]="students.csv";
-        WriteStudents(BaseStud, NumberLineStud, filename); //записываем данные файла в BaseStud (по структуре в файле structanketa.h
+        WriteStudents(BaseStud, NumberLineStud,filename); //считываем данные файла в BaseStud 
         if(NumberLineStud>0){ //выводим таблицу, если она не пустая
             ViewStudents(BaseStud,NumberLineStud);
         }
-        printf("ВЫБЕРИТЕ ДЕЙСТВИЕ:(нельзя вводить пробелы)\n");
-		printf("1 - чтобы добавить нового студента\n2 - чтобы удалить студента\n5 - чтобы создать бэкап\n6 - чтобы загрузить бэкап\n7 - чтобы найти информацию о студенте по его фамили\n8 - чтобы выйти с сохранением изменений\nQ - чтобы вернуться в предыдущее меню (работает во всех программах)\n");
+        printf("ВЫБЕРИТЕ ДЕЙСТВИЕ:(символ без пробела)\n");
+		printf("1 - чтобы добавить нового студента\n2 - чтобы удалить студента\n5 - чтобы создать бэк-ап\n6 - чтобы загрузить бэк-ап\n7 - чтобы найти информацию о студенте по его фамилии\n8 - чтобы выйти с сохранением изменений\nQ - чтобы вернуться в предыдущее меню (работает во всех программах)\n");
         
-         char StudButton[4];
+         char StudButton[4]; // команда пользователя
         strcpy(StudButton,"0");
-		while((strcmp(StudButton,"0"))==0){ //главный цикл
+		while(!strcmp(StudButton,"0")){ //главный цикл
             printf("students:");
             SetConsoleCP(1251);
             scanf("%s",&StudButton);
             SetConsoleCP(866);
             printf("%s- ",StudButton);
 
-            if((strcmp(StudButton,"0"))!=0 && (strcmp(StudButton,"1"))!=0 && (strcmp(StudButton,"2"))!=0 && (strcmp(StudButton,"5"))!=0 && (strcmp(StudButton,"6"))!=0 && (strcmp(StudButton,"7"))!=0 && (strcmp(StudButton,"8"))!=0 && (strcmp(StudButton,"Q"))!=0){
-                printf("неопознанная команда\n");
+            if((strcmp(StudButton,"0")) && (strcmp(StudButton,"1")) && (strcmp(StudButton,"2")) && (strcmp(StudButton,"5")) && (strcmp(StudButton,"6")) && (strcmp(StudButton,"7")) && (strcmp(StudButton,"8")) && (strcmp(StudButton,"Q"))){
+                printf("Неопознанная команда\n");
                 strcpy(StudButton,"0");
             }
 // ПРОГРАММЫ:
-            if((strcmp(StudButton,"Q"))==0){
+            if(!strcmp(StudButton,"Q")){
                 printf("Возврат в главное меню\n");
                 return;
             }
-            if ((strcmp(StudButton,"1"))==0){    //добавление студента
+            if (!strcmp(StudButton,"1")){    //добавление студента
                 if(AddStudent(BaseStud,NumberLineStud)!=1){
-                NumberLineStud++;}
+                NumberLineStud++;
+                }
                 strcpy(StudButton,"0");
             }
-           if((strcmp(StudButton,"2"))==0){ //удаление студента
+           if(!strcmp(StudButton,"2")){ //удаление студента
                 DeleteStudent(BaseStud, NumberLineStud);
                 strcpy(StudButton,"0");
             }
 
-            if((strcmp(StudButton,"5"))==0){ 
-                printf("Пока в разработке");
-                 strcpy(StudButton,"0");
-            }
-            if((strcmp(StudButton,"6"))==0){ //загрузить бэкап
-                printf("Пока в разработке");
+            if(!strcmp(StudButton,"5")){ //создать бэкап
+                CreateBackUp(BaseStud,NumberLineStud);
                 strcpy(StudButton,"0");
             }
-            if((strcmp(StudButton,"7"))==0){  //найти информацию
+            if(!strcmp(StudButton,"6")){ //загрузить бэкап
+                CopyBackUp(BaseStud, NumberLineStud);
+                strcpy(StudButton,"0");
+            }
+            if(!strcmp(StudButton,"7")){  //найти информацию
                 SearchStudent(BaseStud,NumberLineStud);
                 strcpy(StudButton,"0");
             }
-            if ((strcmp(StudButton,"8"))==0){	//выход из программы с сохранением изменений
+            if (!strcmp(StudButton,"8")){	//выход из программы с сохранением изменений
                 ExitStudents(BaseStud, NumberLineStud);
-                strcpy(StudButton,"-1");
+                return;
             }
         }
     }
